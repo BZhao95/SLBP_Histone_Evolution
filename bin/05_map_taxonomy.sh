@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # ==============================================================================
 # Script: 05_map_taxonomy.sh
@@ -10,7 +11,7 @@
 # This should be the list of hits that PASSED the RPS-BLAST check (from Script 04)
 VERIFIED_ACC="results/rpsblast/slbp_hits.txt"
 # The original raw BLAST output containing TaxID info (from Script 01)
-RAW_BLAST="results/blastp_eukaryota_results.txt"
+RAW_BLAST="results/blastp_results.txt"
 
 # Output Files
 OUT_DIR="results/taxonomy"
@@ -19,7 +20,6 @@ TEMP_FILTERED="$OUT_DIR/tmp_mapped_hits.tsv"
 
 mkdir -p "$OUT_DIR"
 
-# --- 1. Validation ---
 if [[ ! -f "$VERIFIED_ACC" ]]; then
     echo "[ERROR] Verified accession file not found: $VERIFIED_ACC"
     exit 1
@@ -30,10 +30,8 @@ if [[ ! -f "$RAW_BLAST" ]]; then
     exit 1
 fi
 
-# --- 2. Mapping Logic ---
 echo "[INFO] Mapping verified accessions to Taxonomy IDs..."
 
-# Logic: Search the raw BLAST results for the verified accessions.
 # use fgrep (fast grep) for fixed strings since we have a large list of patterns.
 # Column 12 in BLAST format is 'staxids'.
 grep -F -f "$VERIFIED_ACC" "$RAW_BLAST" > "$TEMP_FILTERED"
@@ -42,7 +40,6 @@ grep -F -f "$VERIFIED_ACC" "$RAW_BLAST" > "$TEMP_FILTERED"
 echo "[INFO] Extracting unique TaxIDs..."
 awk '{print $13}' "$TEMP_FILTERED" | tr ';' '\n' | sort -u > "$TAXID_LIST"
 
-# --- 3. Summary ---
 TOTAL_ACC=$(wc -l < "$VERIFIED_ACC")
 UNIQUE_SPECIES=$(wc -l < "$TAXID_LIST")
 

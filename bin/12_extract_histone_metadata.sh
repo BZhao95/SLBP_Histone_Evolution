@@ -6,7 +6,7 @@
 #              genomic locations, and partial sequence status.
 # ==============================================================================
 
-QUERY_FASTA="data/ncbi_histones_raw.fasta"
+QUERY_FASTA="data/histones_demo.fasta"
 OUTPUT_TSV="results/histones/histone_metadata.tsv"
 
 echo "[INFO] Extracting metadata from FASTA headers..."

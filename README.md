@@ -1,4 +1,4 @@
-# Evolutionary of histone mRNA 3' end processing machinery in eukaryotes
+# Evolutionary of Histone mRNA 3' End Processing Machinery in Eukaryotes
 
 A comprehensive pipeline for identifying and analyzing Stem-Loop Binding Protein (SLBP) orthologs and replication-dependent histone processing elements across eukaryotes.
 
@@ -27,5 +27,8 @@ Histone_SLBP_Project/
 - MAFFT
 - FastTree
 - ete3
+- Numpy
+- networks
+- matplotlib
 
 

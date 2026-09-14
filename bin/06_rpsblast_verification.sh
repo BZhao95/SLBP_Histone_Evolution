@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # ==============================================================================
 # Script: 04_rpsblast_verification.sh
@@ -9,8 +10,8 @@
 
 # --- Configuration ---
 # Update CDD_DB path to your local database location
-CDD_DB="/Users/Cdd" #the whole CDD, downloaded from NCBI
-SEQUENCES="data/retrieved_protein_sequences.fasta"
+CDD_DB="/Users/zhaobin/Downloads/Cdd/Cdd" #the whole CDD, downloaded from NCBI
+SEQUENCES="results/retrieved_protein_sequences.fasta"
 
 # Output Files
 OUT_DIR="results/rpsblast" #all rpsblast results

@@ -19,12 +19,12 @@ def get_args():
     return parser.parse_args()
 
 def is_eukaryota(taxid, ncbi):
-    """Check if a taxid belongs to the Eukaryota (NCBI taxon: 2759)."""
     try:
         lineage = ncbi.get_lineage(int(taxid))
         return 2759 in lineage
     except:
         return False
+
 
 def main():
     args = get_args()
@@ -36,7 +36,7 @@ def main():
         'BLASTP': 'BLASTP_taxids.txt',
         'OrthoDB': 'OrthoDB_taxids.txt',
         'InterPro': 'InterPro_taxids.txt',
-        'TBLASTN': 'tblastn/TBLASTN_taxids.txt'
+        'TBLASTN': 'TBLASTN_taxids.txt'
     }
 
     # Load and combine data
@@ -65,19 +65,32 @@ def main():
     name_map = ncbi.get_taxid_translator(filtered_ids)
     source_map = combined_df.groupby('taxid')['source'].apply(lambda x: set(x)).to_dict()
 
+    # colors
+    colors = {'BLASTP': 'red', 'OrthoDB': 'yellow', 'InterPro': 'blue', 'TBLASTN': 'green'}
+
     # Mark the sources
     for node in tree.traverse():
         if node.is_leaf():
-            taxid = node.name
+            taxid = int(node.name)
             node.add_feature("original_taxid", str(taxid))
             node.name = name_map.get(int(taxid), taxid)
             
             sources = source_map.get(str(taxid), set())
+            node.add_feature("original_taxid", str(taxid)) #keep original taxid for reference
+
+            circle_faces =[] 
+            if "BLASTP" in sources:
+                circle_faces.append(CircleFace(10,"red"))
+            if "OrthoDB" in sources: 
+                circle_faces.append(CircleFace(10, "yellow"))
+            if "InterPro" in sources:
+                circle_faces.append(CircleFace(10, "blue"))
+            if "TBLASTN" in sources:
+                circle_faces.append(CircleFace(10, "green"))
+
             # Map sources to colors
-            colors = {'BLASTP': 'red', 'OrthoDB': 'yellow', 'InterPro': 'blue', 'TBLASTN': 'green'}
-            for idx, (src, color) in enumerate(colors.items()):
-                if src in sources:
-                    node.add_face(CircleFace(10, color), column=idx + 1, position='aligned')
+            for idx, face in enumerate(circle_faces):
+                node.add_face(face, column=idx + 1, position='aligned')
 
     # Collapse
     collapse_taxa = ["Bilateria", "Cnidaria", "Placozoa", "Ctenophora", "Porifera", "Choanoflagellata",
@@ -86,26 +99,48 @@ def main():
                      "Haptista", "Metamonada", "Discoba", "Rhodophyta", "Cryptophyceae"]
 
     for taxon in collapse_taxa:
-        taxid_map = ncbi.get_name_translator([taxon])
-        if taxon in taxid_map:
-            target_id = str(taxid_map[taxon][0])
-            nodes = tree.search_nodes(name=target_id)
-            if nodes:
-                n = nodes[0]
-                num_leaves = len(n.get_leaves())
-                n.children = [] # Collapse
-                n.name = f"{taxon} ({num_leaves} species)"
+        taxid = ncbi.get_name_translator([taxon]).get(taxon)
+        if taxid:
+            node = tree.search_nodes(name=str(taxid[0]))
+            if node:
+                node = node[0]
+                original_leaves = node.get_leaves()
+                num_leaves = len(original_leaves)
+            
+            # Gather all sources from the collapsed leaves
+                all_sources = set()
+                for leaf in original_leaves:
+                    taxid_str = getattr(leaf, 'original_taxid', leaf.name)
+                    all_sources.update(source_map.get(taxid_str, set()))
+            
+            # Hide children to simulate collapse
+                node.children = []
+                node.name = f"{taxon} ({num_leaves} species)"
+
+            # Add colored circles horizontally for collapsed nodes
+                circle_faces = []
+                if 'BLASTP' in all_sources:
+                    circle_faces.append(CircleFace(5, 'red'))
+                if 'OrthoDB' in all_sources:
+                    circle_faces.append(CircleFace(5, 'yellow'))
+                if 'InterPro' in all_sources:
+                    circle_faces.append(CircleFace(5, 'blue'))
+                if 'TBLASTN' in all_sources:
+                    circle_faces.append(CircleFace(5, 'green'))
+
+                for idx, face in enumerate(circle_faces):
+                    node.add_face(face, column=idx + 1, position='aligned')
 
     # Render
     ts = TreeStyle()
-    ts.show_leaf_name = True
+    ts.show_leaf_name = False
     ts.scale = 50
     ts.title.add_face(TextFace("Phylogenetic Distribution Summary", fsize=20), column=0)
     
     output_png = os.path.join(args.output_dir, "taxonomy_summary.png")
     tree.render(output_png, w=2000, units='mm', tree_style=ts)
     tree.write(format=1, outfile=os.path.join(args.output_dir, "taxonomy_summary.nwk"))
-    print(f"[SUCCESS] Results saved to {args.output_dir}")
+    print("[SUCCESS] Results saved")
 
 if __name__ == "__main__":
     main()

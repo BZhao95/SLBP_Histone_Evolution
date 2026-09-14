@@ -7,8 +7,8 @@
 # ==============================================================================
 
 # --- Configuration ---
-QUERY_FASTA="data/ncbi_histones_raw.fasta" #directly download from NCBI. nucleotide CDS
-BLAST_DB="/Users/tblastn/Cdd" # Update to local path
+QUERY_FASTA="data/histones_demo.fasta" #directly download from NCBI. nucleotide CDS
+BLAST_DB="/Users/zhaobin/Downloads/Cdd//Cdd" # Update to local path
 OUT_DIR="results/histones"
 ALL_OUT="$OUT_DIR/rpstblastn_all_results.txt"
 TOP_OUT="$OUT_DIR/rpstblastn_top_hits.txt"
