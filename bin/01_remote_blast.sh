@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -euo pipefail
 #
 #===============================================================
 #script: 01_remote_blast.sh
@@ -10,12 +11,13 @@
 
 
 # --- User Configuration --- 
-INPUT_FASTA="QUERY.fa"
-OUTPUT_DIR="blastp_results"
-FINAL_OUTPUT="blastp_results.txt"
+INPUT_FASTA="./data/slbp.fa"
+OUTPUT_DIR="./results/blastp_results"
+FINAL_OUTPUT="./results/blastp_results.txt"
 BATCH_SIZE=5 #ncbi limits
 DB="nr" #change to another ncbi database like refseq if needed
-ENTREZ_QUERY="Eukaryota[Organism]" #Change it to Bacteria, Gaint Virus if needed
+#ENTREZ_QUERY="Eukaryota[Organism]" #Change it to Bacteria, Gaint Virus if needed
+ENTREZ_QUERY="Cryptomycota[Organism]" 
 EVALUE="1e-10"
 MAX_TARGETS=100000
 
@@ -42,6 +44,7 @@ split_fasta() {
             ((count++))
             if ((count>batch_size)); then
                 batch_number=$((batch_number +1))
+                count=1
                 output_file="${output_prefix}_$(printf "%03d" $batch_number).fa"
             fi
         fi
@@ -57,8 +60,8 @@ split_fasta "$INPUT_FASTA" "${OUTPUT_DIR}/batch" "$BATCH_SIZE"
 
 echo "[INFO] Connecting remote BLASTP seaches..."
 
-for BATCH_FILE in "{$OUTPUT_DIR}"/batch_*.fa; do
-    OUTPUT_FILE="$BATCH_FILE%.fa}.txt"
+for BATCH_FILE in "${OUTPUT_DIR}"/batch_*.fa; do
+    OUTPUT_FILE="${BATCH_FILE%.fa}.txt"
     echo "Processing $BATCH_FILE ..."
 
     blastp -query "$BATCH_FILE" \
@@ -70,11 +73,9 @@ for BATCH_FILE in "{$OUTPUT_DIR}"/batch_*.fa; do
             -entrez_query "$ENTREZ_QUERY" \
             -max_target_seqs "$MAX_TARGETS"
     
-    if [[ $? -eq 0 ]]; then
-        echo "Successfully processed $(basename "$BATCH_FILE")."
-    else
-        echo "[WARNING] BLASTP failed for $(basename "$BATCH_FILE")."
-    fi
+
+    echo "Successfully processed $(basename "$BATCH_FILE")."
+    
 
 done
 
