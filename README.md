@@ -19,16 +19,26 @@ Histone_SLBP_Project/
 4. **Evolutionary Synthesis**: Gene-species tree reconciliation and processing state classification.
 
 ## Requirements
+
+###Sequence search and analysis
 - NCBI BLAST+
 - HMMER 3.x
 - RNAfold (ViennaRNA)
-- Python 3.8+
 - cmsearch
-- MAFFT
-- FastTree
+
+###Python
+- Python 3.8+
 - ete3
 - Numpy
 - networks
 - matplotlib
+- nupack
+- pandas
+
+###Sequence alignment and phylogeny
+- MAFFT
+- FastTree
+
+
 
 
